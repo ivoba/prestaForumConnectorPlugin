@@ -247,7 +247,7 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 
 		$sql	= "INSERT INTO ". $this->dbprefix ."users "
 				. " (group_id,user_permissions,user_sig,user_occ,user_interests,user_ip,user_regdate,username,username_clean,user_email,user_lang)"
-				. " VALUES (".$group_id.",'','','','','".$remote_ip."',".time().",'".$nickname."','".$nickname."','".prestaForumFactory::getUserConnectorInstance()->getUserEmail($projectUserId)."','". $userCulture ."')";
+				. " VALUES (".$group_id.",'','','','','".$remote_ip."',".time().",'".$this->db->sql_escape($nickname)."','".$this->db->sql_escape($nickname)."','".prestaForumFactory::getUserConnectorInstance()->getUserEmail($projectUserId)."','". $userCulture ."')";
 		$this->sqlExec($sql);
 
 		$user_id = $this->db->sql_nextid();
@@ -263,7 +263,7 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 		$this->sqlExec($sql);
 
 		$this->setConfigVal('newest_user_id', $user_id, true);
-		$this->setConfigVal('newest_username', $nickname, true);
+		$this->setConfigVal('newest_username', $this->db->sql_escape($nickname), true);
 		$this->setConfigCount('num_users', 1, true);
 
 		$sql = 'SELECT group_colour
@@ -302,7 +302,7 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 
 		if(prestaForumFactory::getUserConnectorInstance()->getUserNickName($projectUserId) != $nickname || $nickname != $this->getUserNickName($projectUserId))
 		{
-			$sql .= "username = '". $nickname ."', username_clean = '".$nickname."', ";
+			$sql .= "username = '". $this->db->sql_escape($nickname) ."', username_clean = '".$this->db->sql_escape($nickname)."', ";
 		}
 		$sql	.= "user_email = '". $email ."', user_lang='". $userCulture ."'"
 				. "WHERE user_id = ". $forum_user_id;
@@ -363,7 +363,7 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 	protected function nickNameAlreadyUse($nickname, $forumUserId = 0)
 	{
 		$sql	= "SELECT username FROM ". $this->dbprefix ."users"
-				. " WHERE username = '". $nickname ."' AND user_id != ". $forumUserId;
+				. " WHERE username = '". $this->db->sql_escape($nickname) ."' AND user_id != ". $forumUserId;
 		$result = $this->sqlExec($sql);
 		return is_array( $this->db->sql_fetchrow($result) );
 	}

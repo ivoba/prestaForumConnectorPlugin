@@ -12,7 +12,6 @@ Extending the plugin in order to create a connector to an other user management 
 
   * Install the plugin
   
-	    [plain]
 	    ./symfony plugin:install prestaForumConnectorPlugin
 	    ./symfony cc
 	    
@@ -20,9 +19,10 @@ Extending the plugin in order to create a connector to an other user management 
 		
   * In /config/ProjectConfiguration.class.php in setup method add a connector to the clear:cache task event in order to clear forum cache when clearing project's cache
 	
-	    [php]
+	    ```php
 	    // listen to symfony's clear:cache task's event
 	    $this->dispatcher->connect( 'task.cache.clear', array( 'prestaForumFactory', 'listenToClearCacheEvent' ) );
+            ```
 	
   * In /config/database.yml be sure to have a connection for the database that will contain forum's tables (can be the same database as for the project or a different one).
 	    
@@ -47,7 +47,6 @@ Extending the plugin in order to create a connector to an other user management 
    
   * If necessary add the following line to .htaccess file under the "RewriteEngine On" line
    
-  		[plain]
   		# redirect to the index file if index.php in not present in url for the forum
   		RewriteRule ^forum/$ forum/index.php [QSA,L]
   			
@@ -55,12 +54,10 @@ Extending the plugin in order to create a connector to an other user management 
 	
   * Once the connector installation is finished launch the patchForum task, that will patch you're forum solution in order to link it with user management system.
 	
-	    [plain]
 	    ./symfony prestaForumConnector:patchForum frontend --env=dev
 	
   * Once this task is finished and has succeed, you can synchronize your user database.
 	
-	    [plain]
 	    ./symfony prestaForumConnector:synchUser frontend all --env=dev
 	    
   * In apps/%APP_NAME%/config/settings.yml, you should desactivate E_STRICT error_reporting to prevent the display of warning in the forum phpBB3 and also be able to connect to the board administration.
@@ -78,7 +75,6 @@ Extending the plugin in order to create a connector to an other user management 
   
   * In /config/app.yml define the following options for the forumConnector
   
-  		[plain]
 		all:
 		  prestaForumConnector:
   		    forumConnector:
@@ -86,16 +82,18 @@ Extending the plugin in order to create a connector to an other user management 
 		      
   * In /web/index.php Replace
     	
-    	[php]
+    	```php
     	sfContext::createInstance($configuration)->dispatch();
+        ```
     	
     With
     
-    	[php]
+    	```php
 		if(!defined('SYMFONY_FORUM'))
 		{
 			sfContext::createInstance($configuration)->dispatch();
 		}
+       ```
 
   * Copy all the forum files inside you're web directory (eg: /web/forum/). Use here the name that will appears in the URL (no .htacess redirection on directory name are actually possible).
   
@@ -120,14 +118,12 @@ So if you use tasks that have an optionnal "application" parameter (like for sfG
 
 In order to promote a user as a super admin, launch the following task once everything has be installed. The user id given here is the user ID of the user management tools 
 
-	[plain]
 	./symfony prestaForumConnector:promoteUser frontend %userIdToPromote% --env=dev
 
 This taks will ask for user's password, and ask if the user should be considered as the forum's founder.
 
 A notice appears when you execute the task but the user has been properly promoted. It's a phpBB3 error.
 
-	[plain]
 	<b>[phpBB Debug] PHP Notice</b>: in file <b>/includes/functions.php</b> on line <b>223</b>: <b>Undefined index: rand_seed_last_update</b><br />
 	
 * A link to the administration interface will appear in the footer on the index page and a new authentication will be requested to access it.
@@ -147,7 +143,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 
   * In /config/app.yml define the following option for the userConnector:
 	
-		[plain]
+		[yaml]
 		all:
 		  prestaForumConnector:
 		    userConnector:
@@ -159,14 +155,15 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 	        
   * Change the parent class in `myUser.class.php`
 
-        [php]
+        ```php
         class myUser extends prestaForumConnectorSfGuardPropelSecurityUser
         {
-        }	 
+        }
+        ```	 
         
   * Add the following methods to sfGuardUser.php in order to synchronize forum's users when sfGuard's users are updated
   
-        [php]
+        ```php
 	    /**
 		 * Override save method in order to update the forum's user
 		 * 
@@ -193,7 +190,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 			parent::delete($con);
 			prestaForumFactory::getForumConnectorInstance()->deleteForumUser( $userId );
 		}
-
+         ```
 
 
 ### sfGuard - Doctrine version
@@ -204,7 +201,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 
   * In /config/app.yml define the following option for the userConnector:
 	
-		[plain]
+		[yaml]
 		all:
 		  prestaForumConnector:
 		    userConnector:
@@ -218,14 +215,15 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 	        
   * Change the parent class in `myUser.class.php`
 
-        [php]
+        ```php
         class myUser extends prestaForumConnectorSfGuardDoctrineSecurityUser
         {
-        }	 
+        }
+        ```	 
         
   * Add the following methods to sfGuardUser.php in order to synchronize forum's users when sfGuard's users are updated
   
-        [php]
+        ```php
 	    /**
 		 * Override save method in order to update the forum's user
 		 * 
@@ -250,6 +248,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 			parent::delete( $conn );
 			prestaForumFactory::getForumConnectorInstance()->deleteForumUser( $userId );
 		}
+        ```
 
 ## Changelog
 

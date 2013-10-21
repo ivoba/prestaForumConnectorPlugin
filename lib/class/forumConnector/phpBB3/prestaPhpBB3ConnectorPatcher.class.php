@@ -138,7 +138,47 @@ class prestaPhpBB3ConnectorPatcher extends prestaPhpBB3Connector implements pres
 		// *************
 		// *** Disable login form
 		// *************
-		
+		if( version_compare($this->getConfigVal('version'), '3.0.11', '>=' ) )
+		{
+			$search	= <<<EOF
+<!-- IF not S_USER_LOGGED_IN and not S_IS_BOT -->
+
+		<form action="{S_LOGIN_ACTION}" method="post">
+
+		<div class="panel">
+			<div class="inner"><span class="corners-top"><span></span></span>
+
+			<div class="content">
+				<h3><a href="{U_LOGIN_LOGOUT}">{L_LOGIN_LOGOUT}</a><!-- IF S_REGISTER_ENABLED -->&nbsp; &bull; &nbsp;<a href="{U_REGISTER}">{L_REGISTER}</a><!-- ENDIF --></h3>
+
+				<fieldset class="fields1">
+				<dl>
+					<dt><label for="username">{L_USERNAME}:</label></dt>
+					<dd><input type="text" tabindex="1" name="username" id="username" size="25" value="{USERNAME}" class="inputbox autowidth" /></dd>
+				</dl>
+				<dl>
+					<dt><label for="password">{L_PASSWORD}:</label></dt>
+					<dd><input type="password" tabindex="2" id="password" name="password" size="25" class="inputbox autowidth" /></dd>
+					<!-- IF S_AUTOLOGIN_ENABLED --><dd><label for="autologin"><input type="checkbox" name="autologin" id="autologin" tabindex="3" /> {L_LOG_ME_IN}</label></dd><!-- ENDIF -->
+					<dd><label for="viewonline"><input type="checkbox" name="viewonline" id="viewonline" tabindex="4" /> {L_HIDE_ME}</label></dd>
+				</dl>
+				<dl>
+					<dt>&nbsp;</dt>
+					<dd><input type="submit" name="login" tabindex="5" value="{L_LOGIN}" class="button1" /></dd>
+				</dl>
+				{S_LOGIN_REDIRECT}
+				</fieldset>
+			</div>
+
+			<span class="corners-bottom"><span></span></span></div>
+		</div>
+
+		</form>
+
+	<!-- ENDIF -->
+EOF;
+	}
+	else{
 		$search	= <<<EOF
 <!-- IF not S_USER_LOGGED_IN and not S_IS_BOT -->
 
@@ -175,6 +215,7 @@ class prestaPhpBB3ConnectorPatcher extends prestaPhpBB3Connector implements pres
 
 	<!-- ENDIF -->
 EOF;
+	}
 		$this->searchAndReplace( $search, '<!-- /* form removed */ -->', $this->phpbb_root_path.'styles/prosilver/template/viewforum_body.html', $sfTask );
 		
 		// *************
@@ -184,6 +225,25 @@ EOF;
 		// *** disable login form
 		// *************
 		
+		if( version_compare($this->getConfigVal('version'), '3.0.11', '>=' ) )
+		{
+			$search	= <<<EOF
+<!-- IF not S_USER_LOGGED_IN and not S_IS_BOT -->
+	<form method="post" action="{S_LOGIN_ACTION}" class="headerspace">
+	<h3><a href="{U_LOGIN_LOGOUT}">{L_LOGIN_LOGOUT}</a><!-- IF S_REGISTER_ENABLED -->&nbsp; &bull; &nbsp;<a href="{U_REGISTER}">{L_REGISTER}</a><!-- ENDIF --></h3>
+		<fieldset class="quick-login">
+			<label for="username">{L_USERNAME}:</label>&nbsp;<input type="text" name="username" id="username" size="10" class="inputbox" title="{L_USERNAME}" />
+			<label for="password">{L_PASSWORD}:</label>&nbsp;<input type="password" name="password" id="password" size="10" class="inputbox" title="{L_PASSWORD}" />
+			<!-- IF S_AUTOLOGIN_ENABLED -->
+				| <label for="autologin">{L_LOG_ME_IN} <input type="checkbox" name="autologin" id="autologin" /></label>
+			<!-- ENDIF -->
+			<input type="submit" name="login" value="{L_LOGIN}" class="button2" />
+			{S_LOGIN_REDIRECT}
+		</fieldset>
+	</form>
+<!-- ENDIF -->
+EOF;
+		}
 		// >= 3.0.6
 		if( version_compare($this->getConfigVal('version'), '3.0.6', '>=' ) )
 		{
