@@ -19,16 +19,16 @@ Extending the plugin in order to create a connector to an other user management 
 		
   * In /config/ProjectConfiguration.class.php in setup method add a connector to the clear:cache task event in order to clear forum cache when clearing project's cache
 	
-	    ```php
-	    // listen to symfony's clear:cache task's event
-	    $this->dispatcher->connect( 'task.cache.clear', array( 'prestaForumFactory', 'listenToClearCacheEvent' ) );
-            ```
+    ```php
+    // listen to symfony's clear:cache task's event
+    $this->dispatcher->connect( 'task.cache.clear', array( 'prestaForumFactory', 'listenToClearCacheEvent' ) );
+    ```
 	
   * In /config/database.yml be sure to have a connection for the database that will contain forum's tables (can be the same database as for the project or a different one).
 	    
   * In /config/app.yml add the following options (and personalize them for your needs)
 	
-	    [yaml]
+    ```YAML
 	    all:
 		  prestaForumConnector:
 		    userConnector:
@@ -44,7 +44,8 @@ Extending the plugin in order to create a connector to an other user management 
 		    forumWebDir:             <?php echo sfConfig::get('sf_web_dir');?>/forum/ # path to the forum directory 
 		    
 		    forumDatabaseId:        default  # the identifier of the database connection to use for the forum solution as defined in database.yml
-   
+    ```   
+
   * If necessary add the following line to .htaccess file under the "RewriteEngine On" line
    
   		# redirect to the index file if index.php in not present in url for the forum
@@ -62,10 +63,11 @@ Extending the plugin in order to create a connector to an other user management 
 	    
   * In apps/%APP_NAME%/config/settings.yml, you should desactivate E_STRICT error_reporting to prevent the display of warning in the forum phpBB3 and also be able to connect to the board administration.
 
-		[yaml]
+    ```YAML
 		dev:
 	      .settings:
 	        error_reporting:        <?php echo (E_ALL)."\n" ?> # ATTENTION: E_STRICT has been desactivated only for phpBB3 forum
+    ```
 
 ## Forum Connectors
 
@@ -74,26 +76,28 @@ Extending the plugin in order to create a connector to an other user management 
 #### Installation
   
   * In /config/app.yml define the following options for the forumConnector
-  
-		all:
+ 
+    ```YAML	
+        all:
 		  prestaForumConnector:
   		    forumConnector:
 		      class:  prestaPhpBB3Connector
+    ```
 		      
   * In /web/index.php Replace
-    	
-    	```php
-    	sfContext::createInstance($configuration)->dispatch();
-        ```
+    
+    ```php
+    sfContext::createInstance($configuration)->dispatch();
+    ```
     	
     With
     
-    	```php
-		if(!defined('SYMFONY_FORUM'))
-		{
-			sfContext::createInstance($configuration)->dispatch();
-		}
-       ```
+    ```php
+    if(!defined('SYMFONY_FORUM'))
+    {
+    	sfContext::createInstance($configuration)->dispatch();
+    }
+    ```
 
   * Copy all the forum files inside you're web directory (eg: /web/forum/). Use here the name that will appears in the URL (no .htacess redirection on directory name are actually possible).
   
@@ -143,7 +147,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 
   * In /config/app.yml define the following option for the userConnector:
 	
-		[yaml]
+    ```YAML
 		all:
 		  prestaForumConnector:
 		    userConnector:
@@ -152,18 +156,19 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 		        getUsernameMethod:  getUsername	# define here the name of the sfGuardUser's method to use for retrieving the username
 		        getEmailMethod:     getEmail	# define here the name of the sfGuardUser's method to use for retrieving the email. Can be getUsername if the username is the email. If needed create yourself this method if the email is stored in another table like the profile table.
 		        getCultureMethod:   getCulture	# define here the name of the sfGuardUser's method to use for retrieving the user's preferred culture. If needed create yourself this method if the culture is stored in another table like the profile table or if it is a constant.
-	        
+    ```	
+        
   * Change the parent class in `myUser.class.php`
 
-        ```php
-        class myUser extends prestaForumConnectorSfGuardPropelSecurityUser
-        {
-        }
-        ```	 
+    ```php
+    class myUser extends prestaForumConnectorSfGuardPropelSecurityUser
+    {
+    }
+    ```	 
         
   * Add the following methods to sfGuardUser.php in order to synchronize forum's users when sfGuard's users are updated
   
-        ```php
+    ```php
 	    /**
 		 * Override save method in order to update the forum's user
 		 * 
@@ -190,7 +195,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 			parent::delete($con);
 			prestaForumFactory::getForumConnectorInstance()->deleteForumUser( $userId );
 		}
-         ```
+     ```
 
 
 ### sfGuard - Doctrine version
@@ -201,7 +206,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 
   * In /config/app.yml define the following option for the userConnector:
 	
-		[yaml]
+    ```YAML
 		all:
 		  prestaForumConnector:
 		    userConnector:
@@ -210,20 +215,21 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 		        getUsernameMethod:  getUsername	# define here the name of the sfGuardUser's method to use for retrieving the username
 		        getEmailMethod:     getEmail	# define here the name of the sfGuardUser's method to use for retrieving the email (should be getEmailAddress for latest sfDoctrineGuardPlugin). Can be getUsername if the username is the email. If needed create yourself this method if the email is stored in another table like the profile table.
 		        getCultureMethod:   getCulture	# define here the name of the sfGuardUser's method to use for retrieving the user's preferred culture. If needed create yourself this method if the culture is stored in another table like the profile table or if it is a constant.
+    ```
 	
 	**Warning:** If you use latest sfDoctrineGuardPlugin version with email field included, be sure to redefine the 'getEmailMethod' to 'getEmailAddress'.
 	        
   * Change the parent class in `myUser.class.php`
 
-        ```php
-        class myUser extends prestaForumConnectorSfGuardDoctrineSecurityUser
-        {
-        }
-        ```	 
+    ```php
+    class myUser extends prestaForumConnectorSfGuardDoctrineSecurityUser
+    {
+    }
+    ```	 
         
   * Add the following methods to sfGuardUser.php in order to synchronize forum's users when sfGuard's users are updated
   
-        ```php
+    ```php
 	    /**
 		 * Override save method in order to update the forum's user
 		 * 
@@ -248,7 +254,7 @@ If you want to do a forum upgrade (eg from v3.0.5 to v3.0.6), it is recommanded 
 			parent::delete( $conn );
 			prestaForumFactory::getForumConnectorInstance()->deleteForumUser( $userId );
 		}
-        ```
+    ```
 
 ## Changelog
 
