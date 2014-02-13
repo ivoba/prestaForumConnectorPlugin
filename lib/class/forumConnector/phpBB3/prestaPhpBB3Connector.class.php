@@ -103,10 +103,16 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 	public function enableForumUser($projectUserId)
 	{
 		$forum_user_id = $this->getForumUserIdFromProjectUserId($projectUserId);
-		$sql	= "UPDATE ". $this->dbprefix ."users"
-				. " SET user_type = 0, user_inactive_reason = 0 "
-				. " WHERE user_id = ".$forum_user_id;
-		$this->sqlExec($sql);
+        $user = $this->getUser($forum_user_id);
+        //check if user is disabled, only then enable, to protect other user_types like founder
+        if($user){
+            if($user['user_type'] == 1){
+                $sql	= "UPDATE ". $this->dbprefix ."users"
+                    . " SET user_type = 0, user_inactive_reason = 0 "
+                    . " WHERE user_id = ".$forum_user_id;
+                $this->sqlExec($sql);
+            }
+        }
 	}
 
 	/**
@@ -117,10 +123,14 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 	public function disableForumUser($projectUserId)
 	{
 		$forum_user_id = $this->getForumUserIdFromProjectUserId($projectUserId);
-		$sql	= "UPDATE ". $this->dbprefix ."users"
-				. " SET user_type = 1, user_inactive_reason = 3 "
-				. " WHERE user_id = ".$forum_user_id;
-		$this->sqlExec($sql);
+        if($forum_user_id !== false){
+            //todo if no userid dont fire query
+            $sql	= "UPDATE ". $this->dbprefix ."users"
+                . " SET user_type = 1, user_inactive_reason = 3 "
+                . " WHERE user_id = ".$forum_user_id;
+            return $this->sqlExec($sql);
+        }
+        return false;
 	}
 	
 	/**
@@ -130,11 +140,13 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 	 */
 	public function deleteForumUser($projectUserId)
 	{
-		$this->disableForumUser($projectUserId);
-		$sql	= "UPDATE ".$this->dbprefix."profile_fields_data "
-				. "SET pf_".$this->params['forumFieldProjectUserId']." = NULL "
-				. "WHERE pf_".$this->params['forumFieldProjectUserId']." = ".$projectUserId;
-		$this->sqlExec($sql);
+		$check = $this->disableForumUser($projectUserId);
+        if($check){
+            $sql	= "UPDATE ".$this->dbprefix."profile_fields_data "
+                    . "SET pf_".$this->params['forumFieldProjectUserId']." = NULL "
+                    . "WHERE pf_".$this->params['forumFieldProjectUserId']." = ".$projectUserId;
+            $this->sqlExec($sql);
+        }
 	}
 
 	/**
@@ -195,6 +207,26 @@ class prestaPhpBB3Connector extends prestaAbstractForumConnector
 		}
 		return false;
 	}
+
+    /**
+     * @author	ivoba
+     * @version	1.1
+     * @return	Return user array
+     */
+    public function getUser($projectUserId)
+    {
+        $sql	= "SELECT * FROM ". $this->dbprefix ."users u,"
+            . "". $this->dbprefix ."profile_fields_data d"
+            . " WHERE d.pf_".$this->params['forumFieldProjectUserId']." = ".$projectUserId
+            . " AND u.user_id = d.user_id";
+        $result = $this->sqlExec($sql);
+        $ar 	= $this->db->sql_fetchrow($result);
+        if(is_array($ar) && array_key_exists('username',$ar))
+        {
+            return $ar;
+        }
+        return false;
+    }
 
 	/**
 	 * Check if the project user already exist
